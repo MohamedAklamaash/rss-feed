@@ -1,16 +1,21 @@
 package main
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/MohamedAklamaash/rss-feed/handlers"
+	"github.com/MohamedAklamaash/rss-feed/internal/database"
+	"github.com/MohamedAklamaash/rss-feed/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
-	"github.com/MohamedAklamaash/rss-feed/utils"
+
+	_ "github.com/lib/pq" // included but called using sqlc
 )
 
 func main(){
@@ -20,9 +25,26 @@ func main(){
 		return 
 	}
 	port := os.Getenv("PORT")
+	databaseUrl := os.Getenv("DATABASE_URL")
+	if databaseUrl == "" {
+		log.Fatal("DATABASE_URL environment variable not set")
+		return
+	}
 	if port == ""{
 		log.Fatalln(errors.New("PORT not set"))
 	}
+
+	conn, err := sql.Open("postgres", databaseUrl)
+
+	if err != nil {
+		log.Fatalln(errors.New(err.Error()))
+		return
+	}
+
+	apicfg := &handlers.APIConfig{
+		Db: database.New(conn),
+	}
+
 	router := chi.NewRouter()
 
 	server := &http.Server{
@@ -43,11 +65,14 @@ func main(){
 				),
 		)
 
-	healthRouter := chi.NewRouter()
-	healthRouter.Get("/healthz", utils.HandlerReadiness)
-	healthRouter.Get("/errorz", utils.HandleError)
+	version1Router := chi.NewRouter()
+	version1Router.Get("/healthz", utils.HandlerReadiness)
+	version1Router.Get("/errorz", utils.HandleError)
 
-	router.Mount("/v1", healthRouter)
+	//  user endpoints
+	version1Router.Post("/user/create",apicfg.HandlecreateUser)
+
+	router.Mount("/v1", version1Router)
 
 	log.Println("Running on port:", port)
 	err = server.ListenAndServe()

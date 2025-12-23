@@ -1,0 +1,42 @@
+package handlers
+
+import (
+	"encoding/json"
+	"net/http"
+	"time"
+
+	"github.com/MohamedAklamaash/rss-feed/internal/database"
+	"github.com/MohamedAklamaash/rss-feed/utils"
+	"github.com/MohamedAklamaash/rss-feed/models"
+	"github.com/google/uuid"
+)
+
+func (apicfg *APIConfig) HandlecreateUser(w http.ResponseWriter, r *http.Request){
+	type params struct {
+		Name string `json:"name"`
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	parameter := params{}
+	err := decoder.Decode(&parameter)
+	if err != nil {
+		utils.ResponseWithError(w,"Error in creating user", http.StatusInternalServerError)
+		return 
+	}
+	user, err := apicfg.Db.CreateUser(
+		r.Context(),
+		database.CreateUserParams{
+			ID: uuid.New(),
+			Name: parameter.Name,
+			Createdat: time.Now().UTC(),
+			Updatedat: time.Now().UTC(),
+			},
+		)
+
+	if err != nil {
+		utils.ResponseWithError(w,"Error in creating user with db connection error", http.StatusInternalServerError)
+		return 
+	}
+
+	utils.RespondwithJSON(w, http.StatusCreated, models.DatabaseUserToUser(user))
+}
