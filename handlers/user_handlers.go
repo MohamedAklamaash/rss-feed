@@ -2,12 +2,13 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
 	"github.com/MohamedAklamaash/rss-feed/internal/database"
-	"github.com/MohamedAklamaash/rss-feed/utils"
 	"github.com/MohamedAklamaash/rss-feed/models"
+	"github.com/MohamedAklamaash/rss-feed/utils"
 	"github.com/google/uuid"
 )
 
@@ -39,4 +40,32 @@ func (apicfg *APIConfig) HandlecreateUser(w http.ResponseWriter, r *http.Request
 	}
 
 	utils.RespondwithJSON(w, http.StatusCreated, models.DatabaseUserToUser(user))
+}
+
+func (apicfg *APIConfig) GetUserByAPIKey(w http.ResponseWriter, r *http.Request){
+	apiKey, err := utils.GetApiKey(r)
+	if err!=nil{
+		utils.ResponseWithError(w,"Error in getting api key", http.StatusInternalServerError)
+		return
+	}
+	user, err := apicfg.Db.GetUserByAPIKey(r.Context(), apiKey)
+	if err != nil {
+		utils.ResponseWithError(w,"User not found", http.StatusNotFound)
+		return
+	}
+	utils.RespondwithJSON(w, http.StatusOK, models.DatabaseUserToUser(user))
+}
+
+func (apicfg *APIConfig) GetUserByAPIKeyWithReturn(w http.ResponseWriter, r *http.Request) (database.User, error){
+	apiKey, err := utils.GetApiKey(r)
+	if err!=nil{
+		utils.ResponseWithError(w,"Error in getting api key", http.StatusInternalServerError)
+		return database.User{}, errors.New("error in getting api key")
+	}
+	user, err := apicfg.Db.GetUserByAPIKey(r.Context(), apiKey)
+	if err != nil {
+		utils.ResponseWithError(w,"User not found", http.StatusNotFound)
+		return database.User{}, errors.New("user not found")
+	}
+	return user, nil
 }

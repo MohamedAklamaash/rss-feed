@@ -6,9 +6,8 @@ import (
 	"net/http"
 )
 
-func RespondwithJSON(w  http.ResponseWriter, statusCode int, payload interface{}) {
+func RespondwithJSON(w  http.ResponseWriter, statusCode int, payload interface{}){
 	data, err := json.Marshal(payload)
-
 	if err!=nil{
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Fatalln(err)
