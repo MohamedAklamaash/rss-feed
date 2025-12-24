@@ -1,0 +1,8 @@
+-- +goose Up
+
+ALTER TABLE Feeds ADD COLUMN FeedQuantity int NOT NULL DEFAULT 0;
+ALTER TABLE Feeds ADD COLUMN Processed BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- +goose Down
+ALTER TABLE Feeds DROP COLUMN FeedQuantity;
+ALTER TABLE Feeds DROP COLUMN Processed;

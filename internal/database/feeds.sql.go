@@ -13,18 +13,20 @@ import (
 )
 
 const createFeed = `-- name: CreateFeed :one
-INSERT INTO Feeds (id, createdAt, updatedAt, name, url, user_id)
-VALUES ($1, $2, $3, $4, $5, $6)
-    RETURNING id, createdat, updatedat, name, url, user_id
+INSERT INTO Feeds (id, createdAt, updatedAt, name, url, user_id, FeedQuantity, processed)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    RETURNING id, createdat, updatedat, name, url, user_id, feedquantity, processed
 `
 
 type CreateFeedParams struct {
-	ID        uuid.UUID
-	Createdat time.Time
-	Updatedat time.Time
-	Name      string
-	Url       string
-	UserID    uuid.UUID
+	ID           uuid.UUID
+	Createdat    time.Time
+	Updatedat    time.Time
+	Name         string
+	Url          string
+	UserID       uuid.UUID
+	Feedquantity int32
+	Processed    bool
 }
 
 func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, error) {
@@ -35,6 +37,8 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 		arg.Name,
 		arg.Url,
 		arg.UserID,
+		arg.Feedquantity,
+		arg.Processed,
 	)
 	var i Feed
 	err := row.Scan(
@@ -44,12 +48,50 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 		&i.Name,
 		&i.Url,
 		&i.UserID,
+		&i.Feedquantity,
+		&i.Processed,
 	)
 	return i, err
 }
 
+const feedsWithoutProcess = `-- name: FeedsWithoutProcess :many
+SELECT id, createdat, updatedat, name, url, user_id, feedquantity, processed FROM Feeds where processed=False
+`
+
+func (q *Queries) FeedsWithoutProcess(ctx context.Context) ([]Feed, error) {
+	rows, err := q.db.QueryContext(ctx, feedsWithoutProcess)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Feed
+	for rows.Next() {
+		var i Feed
+		if err := rows.Scan(
+			&i.ID,
+			&i.Createdat,
+			&i.Updatedat,
+			&i.Name,
+			&i.Url,
+			&i.UserID,
+			&i.Feedquantity,
+			&i.Processed,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAllFeeds = `-- name: GetAllFeeds :many
-SELECT id, createdat, updatedat, name, url, user_id FROM Feeds ORDER BY createdAt desc
+SELECT id, createdat, updatedat, name, url, user_id, feedquantity, processed FROM Feeds ORDER BY createdAt desc
 `
 
 func (q *Queries) GetAllFeeds(ctx context.Context) ([]Feed, error) {
@@ -68,6 +110,8 @@ func (q *Queries) GetAllFeeds(ctx context.Context) ([]Feed, error) {
 			&i.Name,
 			&i.Url,
 			&i.UserID,
+			&i.Feedquantity,
+			&i.Processed,
 		); err != nil {
 			return nil, err
 		}
@@ -83,7 +127,7 @@ func (q *Queries) GetAllFeeds(ctx context.Context) ([]Feed, error) {
 }
 
 const getSpecificFeed = `-- name: GetSpecificFeed :one
-SELECT id, createdat, updatedat, name, url, user_id FROM Feeds where id=$1
+SELECT id, createdat, updatedat, name, url, user_id, feedquantity, processed FROM Feeds where id=$1
 `
 
 func (q *Queries) GetSpecificFeed(ctx context.Context, id uuid.UUID) (Feed, error) {
@@ -96,12 +140,14 @@ func (q *Queries) GetSpecificFeed(ctx context.Context, id uuid.UUID) (Feed, erro
 		&i.Name,
 		&i.Url,
 		&i.UserID,
+		&i.Feedquantity,
+		&i.Processed,
 	)
 	return i, err
 }
 
 const getUserFeeds = `-- name: GetUserFeeds :many
-SELECT id, createdat, updatedat, name, url, user_id FROM feeds WHERE user_id=$1 ORDER BY createdAt desc
+SELECT id, createdat, updatedat, name, url, user_id, feedquantity, processed FROM feeds WHERE user_id=$1 ORDER BY createdAt desc
 `
 
 func (q *Queries) GetUserFeeds(ctx context.Context, userID uuid.UUID) ([]Feed, error) {
@@ -120,6 +166,8 @@ func (q *Queries) GetUserFeeds(ctx context.Context, userID uuid.UUID) ([]Feed, e
 			&i.Name,
 			&i.Url,
 			&i.UserID,
+			&i.Feedquantity,
+			&i.Processed,
 		); err != nil {
 			return nil, err
 		}
@@ -132,4 +180,28 @@ func (q *Queries) GetUserFeeds(ctx context.Context, userID uuid.UUID) ([]Feed, e
 		return nil, err
 	}
 	return items, nil
+}
+
+const markFeedProcessed = `-- name: MarkFeedProcessed :one
+UPDATE feeds
+SET processed = true,
+    updatedAt = NOW()
+WHERE id = $1
+    RETURNING id, createdat, updatedat, name, url, user_id, feedquantity, processed
+`
+
+func (q *Queries) MarkFeedProcessed(ctx context.Context, id uuid.UUID) (Feed, error) {
+	row := q.db.QueryRowContext(ctx, markFeedProcessed, id)
+	var i Feed
+	err := row.Scan(
+		&i.ID,
+		&i.Createdat,
+		&i.Updatedat,
+		&i.Name,
+		&i.Url,
+		&i.UserID,
+		&i.Feedquantity,
+		&i.Processed,
+	)
+	return i, err
 }

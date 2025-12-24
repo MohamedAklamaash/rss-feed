@@ -27,13 +27,21 @@ func (apicfg *APIConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user
 		return
 	}
 
+	xmlFeeds, err := utils.ParseRssXML(parameter.Url)
+	if err!= nil {
+		utils.ResponseWithError(w,"Post RSS Feed Handler Error", http.StatusBadRequest)
+		return
+	}
+	cnt := len(xmlFeeds)
 	feed, err := apicfg.Db.CreateFeed(r.Context(),database.CreateFeedParams{
-		Name: parameter.FeedName,
-		Url: parameter.Url,
-		Createdat: time.Now().UTC(),
-		Updatedat: time.Now().UTC(),
-		ID: uuid.New(),
-		UserID: user.ID,
+		Name:         parameter.FeedName,
+		Url:          parameter.Url,
+		Createdat:    time.Now().UTC(),
+		Updatedat:    time.Now().UTC(),
+		ID:           uuid.New(),
+		UserID:       user.ID,
+		Feedquantity: int32(cnt),
+		Processed:    false,
 	})
 
 	if err != nil {

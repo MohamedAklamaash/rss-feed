@@ -35,6 +35,12 @@ type XMLItem struct {
 type CustomTime struct {
 	time.Time
 }
+type FeedRss struct {
+	Title string `json:"title"`
+	Link  string `json:"link"`
+	PublishedAt CustomTime `json:"publishedAt"`
+	Description string `json:"description"`
+}
 
 func (ct *CustomTime) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	var raw string
@@ -86,7 +92,7 @@ func GetXML(url string) (string, error) {
 	return string(data), nil
 }
 
-func ParseRssXML(url string) (*XMLFeed, error) {
+func ParseRssXML(url string) ([]FeedRss, error) {
 	data, err := GetXML(url)
 	if err != nil {
 		log.Printf("Error fetching XML: %v", err)
@@ -101,12 +107,15 @@ func ParseRssXML(url string) (*XMLFeed, error) {
 		log.Printf("Error unmarshalling XML: %v", err)
 		return nil, fmt.Errorf("unmarshal error: %v", err)
 	}
-
+	var feedRss []FeedRss
 	for _, feed := range xmlFeed.Channel.Item{
-		log.Println("Title:", feed.Title)
-		log.Println("Link:", feed.Link)
-		log.Println("Published:", feed.Published)
+		rssFeed := FeedRss{
+			Title: feed.Title,
+			Link:  feed.Link,
+			PublishedAt: feed.Published,
+			Description: feed.Description,
+		}
+		feedRss = append(feedRss, rssFeed)
 	}
-
-	return &xmlFeed, nil
+	return feedRss, nil
 }

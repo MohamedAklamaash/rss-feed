@@ -15,6 +15,7 @@ func (apicfg *APIConfig) CreateFeedFollow(w http.ResponseWriter, r *http.Request
 	type params struct {
 		FeedId string `json:"feed_id"`
 	}
+
 	decoder := json.NewDecoder(r.Body)
 	parameter := params{}
 	err := decoder.Decode(&parameter)
@@ -27,7 +28,7 @@ func (apicfg *APIConfig) CreateFeedFollow(w http.ResponseWriter, r *http.Request
 		utils.ResponseWithError(w,"Error in parsing request body of followerUserId", http.StatusBadRequest)
 		return
 	}
-	feedFollow,feederr := apicfg.Db.CreateFeedFollow(r.Context(),database.CreateFeedFollowParams{
+	feedFollow,feedErr := apicfg.Db.CreateFeedFollow(r.Context(),database.CreateFeedFollowParams{
 		ID: uuid.New(),
 		Createdat: time.Now().UTC(),
 		Updatedat: time.Now().UTC(),
@@ -35,7 +36,7 @@ func (apicfg *APIConfig) CreateFeedFollow(w http.ResponseWriter, r *http.Request
 		FeedID: feedId,
 		Lastfetchedat: time.Now(),
 	})
-	if feederr != nil {
+	if feedErr != nil {
 		utils.ResponseWithError(w,"Error in creating feed follower", http.StatusBadRequest)
 		return
 	}

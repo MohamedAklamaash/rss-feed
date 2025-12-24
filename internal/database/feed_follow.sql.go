@@ -48,3 +48,41 @@ func (q *Queries) CreateFeedFollow(ctx context.Context, arg CreateFeedFollowPara
 	)
 	return i, err
 }
+
+const listAllFeedPosts = `-- name: ListAllFeedPosts :many
+SELECT p.id, p.title, p.description, p.publishedat, p.link, p.feedid
+FROM posts p
+         INNER JOIN feeds f ON f.id = p.feedid
+         INNER JOIN feedfollows ff ON ff.feed_id = f.id
+WHERE ff.user_id = $1
+`
+
+func (q *Queries) ListAllFeedPosts(ctx context.Context, userID uuid.UUID) ([]Post, error) {
+	rows, err := q.db.QueryContext(ctx, listAllFeedPosts, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Post
+	for rows.Next() {
+		var i Post
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.Publishedat,
+			&i.Link,
+			&i.Feedid,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

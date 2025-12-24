@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/MohamedAklamaash/rss-feed/crons"
 	"github.com/MohamedAklamaash/rss-feed/handlers"
 	"github.com/MohamedAklamaash/rss-feed/internal/database"
 	"github.com/MohamedAklamaash/rss-feed/utils"
@@ -44,7 +45,9 @@ func main() {
 	apicfg := &handlers.APIConfig{
 		Db: database.New(conn),
 	}
-
+	// cool cron
+	c := crons.InitCronScheduler()
+	defer c.Stop()
 	router := chi.NewRouter()
 
 	server := &http.Server{
@@ -80,9 +83,10 @@ func main() {
 	version1Router.Get("/user/feed",apicfg.AuthMiddleware(apicfg.GetUserFeed))
 
 	// feed followers endpoints
+	version1Router.Get("/user/feed/follow",apicfg.AuthMiddleware(apicfg.CreateFeedFollow))
 
-	// Rss destructing
-	version1Router.Post("/post/create",apicfg.AuthMiddleware(apicfg.PostRssFeedHandler))
+	// posts endpoints
+	version1Router.Get("/feed/posts",apicfg.AuthMiddleware(apicfg.CreateFeed))
 	router.Mount("/v1", version1Router)
 
 	log.Println("Running on port:", port)
