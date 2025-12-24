@@ -79,6 +79,10 @@ func main() {
 	version1Router.Get("/feed/all",apicfg.AuthMiddleware(apicfg.GetAllFeeds))
 	version1Router.Get("/user/feed",apicfg.AuthMiddleware(apicfg.GetUserFeed))
 
+	// feed followers endpoints
+
+	// Rss destructing
+	version1Router.Post("/post/create",apicfg.AuthMiddleware(apicfg.PostRssFeedHandler))
 	router.Mount("/v1", version1Router)
 
 	log.Println("Running on port:", port)

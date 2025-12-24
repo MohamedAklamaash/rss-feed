@@ -5,6 +5,7 @@ CREATE TABLE FeedFollows(
     updatedAt timestamp NOT NULL ,
     user_id UUID NOT NULL REFERENCES Users(id) ON DELETE CASCADE,
     feed_id UUID NOT NULL REFERENCES Feeds(id) ON DELETE CASCADE,
+    lastFetchedAt timestamp NOT NULL,
     UNIQUE (user_id, feed_id)
 );
 
