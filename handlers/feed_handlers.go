@@ -15,25 +15,25 @@ import (
 func (apicfg *APIConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 
 	type params struct {
-		FeedName      string `json:"feed_name"`
-		Url string `json:"url"`
+		FeedName string `json:"feed_name"`
+		Url      string `json:"url"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
 	parameter := params{}
 	err := decoder.Decode(&parameter)
 	if err != nil {
-		utils.ResponseWithError(w,"Failed to parse request body", http.StatusInternalServerError)
+		utils.ResponseWithError(w, "Failed to parse request body", http.StatusInternalServerError)
 		return
 	}
 
 	xmlFeeds, err := utils.ParseRssXML(parameter.Url)
-	if err!= nil {
-		utils.ResponseWithError(w,"Post RSS Feed Handler Error", http.StatusBadRequest)
+	if err != nil {
+		utils.ResponseWithError(w, "Post RSS Feed Handler Error", http.StatusBadRequest)
 		return
 	}
 	cnt := len(xmlFeeds)
-	feed, err := apicfg.Db.CreateFeed(r.Context(),database.CreateFeedParams{
+	feed, err := apicfg.Db.CreateFeed(r.Context(), database.CreateFeedParams{
 		Name:         parameter.FeedName,
 		Url:          parameter.Url,
 		Createdat:    time.Now().UTC(),
@@ -45,7 +45,7 @@ func (apicfg *APIConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user
 	})
 
 	if err != nil {
-		utils.ResponseWithError(w,"Failed to create feed", http.StatusInternalServerError)
+		utils.ResponseWithError(w, "Failed to create feed", http.StatusInternalServerError)
 		return
 	}
 
@@ -53,10 +53,10 @@ func (apicfg *APIConfig) CreateFeed(w http.ResponseWriter, r *http.Request, user
 }
 
 func (apicfg *APIConfig) GetUserFeed(w http.ResponseWriter, r *http.Request, user database.User) {
-	feeds,err := apicfg.Db.GetUserFeeds(r.Context(),user.ID)
+	feeds, err := apicfg.Db.GetUserFeeds(r.Context(), user.ID)
 
 	if err != nil {
-		utils.ResponseWithError(w,"Failed to get user feeds", http.StatusInternalServerError)
+		utils.ResponseWithError(w, "Failed to get user feeds", http.StatusInternalServerError)
 		return
 	}
 	var CustomFeeds []*models.Feed
@@ -70,7 +70,7 @@ func (apicfg *APIConfig) GetUserFeed(w http.ResponseWriter, r *http.Request, use
 func (apicfg *APIConfig) GetAllFeeds(w http.ResponseWriter, r *http.Request, _ database.User) {
 	feeds, err := apicfg.Db.GetAllFeeds(r.Context())
 	if err != nil {
-		utils.ResponseWithError(w,"Failed to get all feeds", http.StatusInternalServerError)
+		utils.ResponseWithError(w, "Failed to get all feeds", http.StatusInternalServerError)
 		return
 	}
 	var CustomFeeds []*models.Feed
@@ -84,12 +84,12 @@ func (apicfg *APIConfig) GetSpecificFeed(w http.ResponseWriter, r *http.Request,
 	id := chi.URLParam(r, "id")
 	feedId, err := uuid.Parse(id)
 	if err != nil {
-		utils.ResponseWithError(w,"Failed to parse request body or Feed not Found", http.StatusBadRequest)
+		utils.ResponseWithError(w, "Failed to parse request body or Feed not Found", http.StatusBadRequest)
 		return
 	}
 	feed, err := apicfg.Db.GetSpecificFeed(r.Context(), feedId)
 	if err != nil {
-		utils.ResponseWithError(w,"Failed to get feed", http.StatusInternalServerError)
+		utils.ResponseWithError(w, "Failed to get feed", http.StatusInternalServerError)
 		return
 	}
 	CustomFeed := models.DatabaseFeedToFeed(feed)

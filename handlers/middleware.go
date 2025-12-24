@@ -11,12 +11,12 @@ type authHandler func(http.ResponseWriter, *http.Request, database.User)
 
 func (apicfg *APIConfig) AuthMiddleware(handler authHandler) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		user, err := apicfg.GetUserByAPIKeyWithReturn(w,r)
+		user, err := apicfg.GetUserByAPIKeyWithReturn(w, r)
 
-		if err!=nil {
+		if err != nil {
 			log.Println(err)
 			return
 		}
-		handler(w,r,user)
+		handler(w, r, user)
 	}
 }

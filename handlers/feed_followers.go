@@ -20,24 +20,24 @@ func (apicfg *APIConfig) CreateFeedFollow(w http.ResponseWriter, r *http.Request
 	parameter := params{}
 	err := decoder.Decode(&parameter)
 	if err != nil {
-		utils.ResponseWithError(w,"Error in parsing request body", http.StatusBadRequest)
+		utils.ResponseWithError(w, "Error in parsing request body", http.StatusBadRequest)
 		return
 	}
-	feedId,err := uuid.Parse(parameter.FeedId)
+	feedId, err := uuid.Parse(parameter.FeedId)
 	if err != nil {
-		utils.ResponseWithError(w,"Error in parsing request body of followerUserId", http.StatusBadRequest)
+		utils.ResponseWithError(w, "Error in parsing request body of followerUserId", http.StatusBadRequest)
 		return
 	}
-	feedFollow,feedErr := apicfg.Db.CreateFeedFollow(r.Context(),database.CreateFeedFollowParams{
-		ID: uuid.New(),
-		Createdat: time.Now().UTC(),
-		Updatedat: time.Now().UTC(),
-		UserID: user.ID,
-		FeedID: feedId,
+	feedFollow, feedErr := apicfg.Db.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
+		ID:            uuid.New(),
+		Createdat:     time.Now().UTC(),
+		Updatedat:     time.Now().UTC(),
+		UserID:        user.ID,
+		FeedID:        feedId,
 		Lastfetchedat: time.Now(),
 	})
 	if feedErr != nil {
-		utils.ResponseWithError(w,"Error in creating feed follower", http.StatusBadRequest)
+		utils.ResponseWithError(w, "Error in creating feed follower", http.StatusBadRequest)
 		return
 	}
 	feed := models.DatabaseFeedFollowToFeedFollow(&feedFollow)

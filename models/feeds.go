@@ -8,11 +8,11 @@ import (
 )
 
 type Feed struct {
-	ID        uuid.UUID `json:"id"`
-	Createdat time.Time `json:"createdat"`
-	Updatedat time.Time `json:"updatedat"`
-	Name      string `json:"name"`
-	Url       string `json:"url"`
+	ID        uuid.UUID     `json:"id"`
+	Createdat time.Time     `json:"createdat"`
+	Updatedat time.Time     `json:"updatedat"`
+	Name      string        `json:"name"`
+	Url       string        `json:"url"`
 	UserID    uuid.NullUUID `json:"user_id"`
 }
 
@@ -23,6 +23,6 @@ func DatabaseFeedToFeed(feed database.Feed) *Feed {
 		Updatedat: feed.Updatedat,
 		Name:      feed.Name,
 		Url:       feed.Url,
-		UserID:    uuid.NullUUID{UUID:  feed.UserID, Valid: true},
+		UserID:    uuid.NullUUID{UUID: feed.UserID, Valid: true},
 	}
 }

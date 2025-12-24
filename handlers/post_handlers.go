@@ -11,8 +11,8 @@ func (apicfg *APIConfig) ReturnPosts(w http.ResponseWriter, r *http.Request, use
 
 	data, err := apicfg.Db.ListAllFeedPosts(r.Context(), user.ID)
 	if err != nil {
-		utils.ResponseWithError(w,"Error getting all posts", http.StatusUnauthorized)
+		utils.ResponseWithError(w, "Error getting all posts", http.StatusUnauthorized)
 		return
 	}
-	utils.RespondwithJSON(w,http.StatusOK,data)
+	utils.RespondwithJSON(w, http.StatusOK, data)
 }

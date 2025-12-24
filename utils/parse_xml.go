@@ -15,31 +15,31 @@ type XMLFeed struct {
 }
 
 type XMLChannel struct {
-	Title         string    `xml:"title"`
-	Link          string    `xml:"link"`
-	Description   string    `xml:"description"`
-	Language      string    `xml:"language"`
-	Generator     string    `xml:"generator"`
+	Title         string     `xml:"title"`
+	Link          string     `xml:"link"`
+	Description   string     `xml:"description"`
+	Language      string     `xml:"language"`
+	Generator     string     `xml:"generator"`
 	LastBuildDate CustomTime `xml:"lastBuildDate"`
-	Item          []XMLItem `xml:"item"`
+	Item          []XMLItem  `xml:"item"`
 }
 
 type XMLItem struct {
-	Title       string    `xml:"title"`
-	Link        string    `xml:"link"`
-	Published   CustomTime `xml:"pubDate"` // Custom time type for pubDate
-	ReferenceUrl string   `xml:"guid"`
-	Description string    `xml:"description"`
+	Title        string     `xml:"title"`
+	Link         string     `xml:"link"`
+	Published    CustomTime `xml:"pubDate"` // Custom time type for pubDate
+	ReferenceUrl string     `xml:"guid"`
+	Description  string     `xml:"description"`
 }
 
 type CustomTime struct {
 	time.Time
 }
 type FeedRss struct {
-	Title string `json:"title"`
-	Link  string `json:"link"`
+	Title       string     `json:"title"`
+	Link        string     `json:"link"`
 	PublishedAt CustomTime `json:"publishedAt"`
-	Description string `json:"description"`
+	Description string     `json:"description"`
 }
 
 func (ct *CustomTime) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
@@ -49,10 +49,10 @@ func (ct *CustomTime) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error
 	}
 
 	dateFormats := []string{
-		"Mon, 02 Jan 2006 15:04:05 -0700",   // RFC 1123 (common in RSS feeds)
-		"2006-01-02T15:04:05Z07:00",         // RFC 3339 (ISO 8601 format)
-		"Mon, 02 Jan 2006 15:04:05 +0000",   // RFC 1123 (with "+0000" for UTC)
-		"2006-01-02 15:04:05",               // Common MySQL format
+		"Mon, 02 Jan 2006 15:04:05 -0700", // RFC 1123 (common in RSS feeds)
+		"2006-01-02T15:04:05Z07:00",       // RFC 3339 (ISO 8601 format)
+		"Mon, 02 Jan 2006 15:04:05 +0000", // RFC 1123 (with "+0000" for UTC)
+		"2006-01-02 15:04:05",             // Common MySQL format
 	}
 
 	var parsedTime time.Time
@@ -108,10 +108,10 @@ func ParseRssXML(url string) ([]FeedRss, error) {
 		return nil, fmt.Errorf("unmarshal error: %v", err)
 	}
 	var feedRss []FeedRss
-	for _, feed := range xmlFeed.Channel.Item{
+	for _, feed := range xmlFeed.Channel.Item {
 		rssFeed := FeedRss{
-			Title: feed.Title,
-			Link:  feed.Link,
+			Title:       feed.Title,
+			Link:        feed.Link,
 			PublishedAt: feed.Published,
 			Description: feed.Description,
 		}

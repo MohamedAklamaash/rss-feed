@@ -78,15 +78,15 @@ func main() {
 
 	// feed endpoints
 	version1Router.Post("/feed/create", apicfg.AuthMiddleware(apicfg.CreateFeed))
-	version1Router.Get("/feed/{id}",apicfg.AuthMiddleware(apicfg.GetSpecificFeed))
-	version1Router.Get("/feed/all",apicfg.AuthMiddleware(apicfg.GetAllFeeds))
-	version1Router.Get("/user/feed",apicfg.AuthMiddleware(apicfg.GetUserFeed))
+	version1Router.Get("/feed/{id}", apicfg.AuthMiddleware(apicfg.GetSpecificFeed))
+	version1Router.Get("/feed/all", apicfg.AuthMiddleware(apicfg.GetAllFeeds))
+	version1Router.Get("/user/feed", apicfg.AuthMiddleware(apicfg.GetUserFeed))
 
 	// feed followers endpoints
-	version1Router.Get("/user/feed/follow",apicfg.AuthMiddleware(apicfg.CreateFeedFollow))
+	version1Router.Get("/user/feed/follow", apicfg.AuthMiddleware(apicfg.CreateFeedFollow))
 
 	// posts endpoints
-	version1Router.Get("/feed/posts",apicfg.AuthMiddleware(apicfg.CreateFeed))
+	version1Router.Get("/feed/posts", apicfg.AuthMiddleware(apicfg.CreateFeed))
 	router.Mount("/v1", version1Router)
 
 	log.Println("Running on port:", port)

@@ -18,11 +18,11 @@ type CreateFeedFollowParams struct {
 
 func DatabaseFeedFollowToFeedFollow(feed *database.Feedfollow) *CreateFeedFollowParams {
 	return &CreateFeedFollowParams{
-		ID: feed.ID,
-		Createdat: feed.Createdat,
-		Updatedat: feed.Updatedat,
-		UserID: feed.UserID,
-		FeedID: feed.FeedID,
+		ID:            feed.ID,
+		Createdat:     feed.Createdat,
+		Updatedat:     feed.Updatedat,
+		UserID:        feed.UserID,
+		FeedID:        feed.FeedID,
 		Lastfetchedat: feed.Lastfetchedat,
 	}
 }
