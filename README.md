@@ -1,195 +1,164 @@
 # RSS Feed Service
 
-> A backend service that fetches top blog posts from RSS feeds and exposes them through a clean HTTP API.
+A robust backend service designed to aggregate blog posts from various RSS feeds and expose them through a clean, well-documented HTTP API. Built with Go and PostgreSQL, it focuses on reliability, type-safety, and ease of deployment.
 
 ---
 
-## 📌 Overview
+## Overview
 
-This project is a **Go-based RSS Feed Aggregator** that:
-- Fetches blog posts from multiple RSS feed sources
-- Parses and stores them in **PostgreSQL**
-- Serves the data via HTTP endpoints
-- Uses **SQLC** for type-safe database access
-- Is fully containerized using **Docker**
+Modern information consumption often requires monitoring dozens of disparate sources. This project provides a centralized engine to automate that process. It doesn't just fetch data; it cleans, persists, and serves it through a structured API, making it an ideal foundational component for blog readers or data analysis tools.
 
-The goal of this project is to demonstrate clean backend architecture, data ingestion, and API design using Go.
-
----
-
-## ✨ Features
-
-- Fetch and parse RSS feeds (XML)
-- Store blog metadata in PostgreSQL
-- Expose feed data via REST API
-- SQLC-generated database queries
-- Docker & Docker Compose support
-- Cron-based feed refresh support
+### Core Capabilities
+- **Automated Ingestion**: Seamlessly handles XML-to-JSON conversion for various RSS formats.
+- **Relational Persistence**: Stores blog and post metadata in a highly available PostgreSQL database.
+- **Type-Safe Access**: Leverages SQLC to ensure that every database interaction is validated at compile-time.
+- **Background Synchronization**: A dedicated worker periodically refreshes feeds without manual intervention.
+- **Container-First**: Optimized for Docker, ensuring consistent behavior from local development to production.
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
-The application follows a **layered architecture** to keep responsibilities clear and the codebase maintainable.
+The service is built on a clean, layered architecture that separates network concerns from business logic and data persistence.
 
-┌─────────────────────┐
-│ HTTP Server │
-│ (main.go) │
-└─────────┬───────────┘
-│
-▼
-┌─────────────────────┐
-│ Handlers │
-│ (HTTP Routes) │
-└─────────┬───────────┘
-│
-▼
-┌─────────────────────┐
-│ Business Logic │
-│ (RSS Fetch & Parse)│
-└─────────┬───────────┘
-│
-▼
-┌─────────────────────┐
-│ Database Layer │
-│ (Postgres + SQLC) │
-└─────────────────────┘
+```mermaid
+graph TD
+    User["User/Client"] --> API["HTTP API (chi)"]
+    API --> Handlers["Handlers"]
+    Handlers --> DB["Database Layer (SQLC)"]
+    DB --> Postgres[("PostgreSQL")]
+    Scraper["Background Scraper"] --> RSS["External RSS Feeds"]
+    Scraper --> DB
+```
 
-
-### 🔹 Why this Architecture?
-
-- **Separation of Concerns** – HTTP, business logic, and DB access are independent
-- **Scalability** – Easy to add more feeds or background workers
-- **Maintainability** – Each layer has a single responsibility
-- **Safety** – SQLC ensures compile-time query validation
+### Design Principles
+- **Separation of Concerns**: Each layer—HTTP, logic, and database—has a single, well-defined responsibility.
+- **Scalability**: The modular design allows you to easily plug in new feed parsers or background tasks.
+- **Reliability**: Comprehensive error handling at the handler level ensures the API remains responsive even if external feeds fail.
 
 ---
 
-## ⚙️ How It Works
+## Technical Stack
 
-1. **RSS Feed Source**
-    - One or more RSS feed URLs are configured as sources.
-
-2. **Fetcher**
-    - The service fetches RSS XML data from these URLs.
-    - XML is parsed to extract blog title, link, publish date, etc.
-
-3. **Persistence**
-    - Parsed feed items are stored in PostgreSQL using SQLC-generated queries.
-
-4. **API Layer**
-    - Clients call HTTP endpoints to retrieve the latest blog posts.
-    - Data is returned in structured JSON format.
-
-5. **Cron Jobs**
-    - Scheduled jobs can periodically refresh feeds to keep data up-to-date.
+- **Language**: Go
+- **Database**: PostgreSQL
+- **SQL Generation**: SQLC (Type-safe SQL)
+- **Migrations**: Goose
+- **Containerization**: Docker & Docker Compose
+- **Routing**: Chi (Lightweight and fast)
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
+```text
 rss-feed/
-├── .github/workflows/ # CI/CD pipelines
-├── crons/ # Scheduled jobs for feed refresh
-├── handlers/ # HTTP request handlers
-├── internal/database/ # SQLC generated DB code
-├── models/ # Data models
-├── sql/ # SQL migrations and queries
-├── utils/ # Helper utilities
-├── Dockerfile
-├── docker-compose.yml
-├── go.mod
-├── go.sum
-└── main.go # Application entry point
-
+├── crons/           # Background scheduling and ticker logic
+├── handlers/        # HTTP request fulfillment and endpoint logic
+├── internal/        # Internal database access and SQLC generated code
+├── models/          # Shared domain entities
+├── sql/             # SQL migrations and query definitions
+├── utils/           # Shared helper functions (JSON responses, errors)
+├── main.go          # Application entry point and router configuration
+├── Dockerfile       # Container image definition
+└── docker-compose.yml # Service orchestration
+```
 
 ---
 
-## 🛠️ Tech Stack
-
-- **Language:** Go
-- **Database:** PostgreSQL
-- **ORM:** SQLC (type-safe SQL)
-- **Containerization:** Docker, Docker Compose
-- **Migrations:** Goose
-- **API:** REST
-
----
-
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
-
 - Go 1.20+
 - Docker & Docker Compose
-- PostgreSQL
+- PostgreSQL (or use the provided containerized setup)
+
+### Installation & Setup
+
+1. **Clone the Project**
+   ```bash
+   git clone https://github.com/MohamedAklamaash/rss-feed.git
+   cd rss-feed
+   ```
+
+2. **Environment Configuration**
+   Create a `.env` file in the root based on your environment:
+   ```env
+   PORT=8080
+   DATABASE_URL=postgres://aklamaash:akla123@localhost:5432/blogs?sslmode=disable
+   ```
+
+3. **Infrastructure Launch**
+   Launch PostgreSQL and pgAdmin using Docker Compose:
+   ```bash
+   docker-compose up -d
+   ```
+
+4. **Database Initialization**
+   Apply migrations using Goose:
+   ```bash
+   go install github.com/pressly/goose/v3/cmd/goose@latest
+   goose -dir sql/schema postgres "$DATABASE_URL" up
+   ```
+
+5. **Code Generation**
+   Generate the database interface with SQLC:
+   ```bash
+   go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+   sqlc generate
+   ```
+
+6. **Start the Service**
+   ```bash
+   go run .
+   ```
 
 ---
 
-### 🔧 Local Setup
+## API & Usage
 
-#### 1️⃣ Clone the repository
+All endpoints are versioned under `/v1`. Below are the primary ways to interact with the service.
+
+### Example: Creating a User
 ```bash
-git clone https://github.com/MohamedAklamaash/rss-feed.git
-cd rss-feed
-
-```
-## **Spin up a database container**
-
-```
-docker run -d \
-  --name rss-blogs \
-  -e POSTGRES_USER=aklamaash \
-  -e POSTGRES_PASSWORD=akla123 \
-  -e POSTGRES_DB=blogs \
-  -p 5432:5432 \
-  postgres
+curl -X POST http://localhost:8080/v1/user/create \
+     -H "Content-Type: application/json" \
+     -d '{"name": "Jane Doe"}'
 ```
 
-## PGAdmin
+### Endpoint Reference
 
-```
-docker run -d \
-  --name pgadmin \
-  -e PGADMIN_DEFAULT_EMAIL=admin@local.dev \
-  -e PGADMIN_DEFAULT_PASSWORD=admin123 \
-  -p 5050:80 \
-  dpage/pgadmin4:latest
+#### System
+- `GET /v1/healthz`: Health check endpoint.
+- `GET /v1/errorz`: Error simulation for testing middleware.
 
-```
+#### Users & Authentication
+- `POST /v1/user/create`: Register a new user and receive an API key.
+- `GET /v1/user/getuser`: Retrieve the current user's profile (Requires `Authorization: ApiKey <key>`).
 
-## Install db tools
+#### Feeds & Posts
+- `POST /v1/feed/create`: Register a new source URL.
+- `GET /v1/feed/all`: View all globally tracked feeds.
+- `GET /v1/feed/posts`: Fetch aggregated posts from all followed feeds.
+- `GET /v1/user/feed/follow`: Subscribe to a specific feed.
 
-```
-go install github.com/pressly/goose/v3/cmd/goose@latest
-```
+---
 
-```
-go get github.com/sqlc-dev/sqlc/cmd/sqlc@lates
-```
+## Contributing
 
-## *Goose is for tracking migrations*
+We value community contributions. To contribute:
+1. Fork the repository.
+2. Create a feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes and push to the branch.
+4. Open a Pull Request for review.
 
-## *SQLC is interesting*
+---
 
-we can set the sqlc.yaml file in the root of the project, set folder for 
-queries and schema and when we run sqlc generate we get all base boiler-plate code
+## License
 
-🤝 Contributing
+This project is licensed under the MIT License.
 
-Contributions are welcome!
+## Author
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Open a Pull Request
-
-📄 License
-
-This project is licensed under the MIT License
-
-✍️ Author
-
-Mohamed Aklamaash M.R
-
-Backend Engineer | Go | Systems | Data
+**Mohamed Aklamaash M.R**
+Backend Engineer focused on Go, Systems, and Data Engineering.
